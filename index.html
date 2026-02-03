@@ -1,0 +1,2387 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>MotoRoda — MVP</title>
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --card:#121a24;
+      --text:#e9eef7;
+      --muted:#9ab0c6;
+      --line:rgba(255,255,255,.08);
+      --brand:#39b6ff;
+      --brand2:#6ee7b7;
+      --warn:#ffb020;
+      --danger:#ff4d4d;
+      --shadow: 0 14px 40px rgba(0,0,0,.45);
+      --radius:18px;
+      --tap: 44px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(900px 500px at 20% -10%, rgba(57,182,255,.22), transparent 60%),
+        radial-gradient(800px 500px at 90% 20%, rgba(110,231,183,.16), transparent 55%),
+        radial-gradient(900px 900px at 40% 110%, rgba(255,176,32,.10), transparent 55%),
+        var(--bg);
+      display:flex;
+      justify-content:center;
+      padding:14px 10px 18px;
+    }
+
+    .phone{
+      width:min(420px, 100%);
+      height:min(860px, 100vh - 32px);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:26px;
+      overflow:hidden;
+      box-shadow: var(--shadow);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
+      position:relative;
+    }
+
+    .statusbar{
+      height: 34px;
+      padding: 10px 14px 6px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      color: rgba(233,238,247,.85);
+      font-size: 12px;
+      letter-spacing:.2px;
+      background: rgba(0,0,0,.12);
+      backdrop-filter: blur(10px);
+    }
+    .statusbar .dots{display:flex; gap:6px; align-items:center; opacity:.85;}
+    .dot{width:6px;height:6px;border-radius:99px;background:rgba(233,238,247,.7)}
+
+    .app{
+      height: calc(100% - 34px);
+      display:flex;
+      flex-direction:column;
+      position:relative;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 14px 14px 10px;
+      border-bottom:1px solid var(--line);
+      background: rgba(0,0,0,.10);
+      backdrop-filter: blur(12px);
+    }
+    .brand{display:flex; gap:10px; align-items:center; min-width:0;}
+    .logo{
+      width:34px;height:34px;border-radius:12px;
+      background: linear-gradient(135deg, rgba(57,182,255,.95), rgba(110,231,183,.85));
+      box-shadow: 0 10px 24px rgba(57,182,255,.18);
+      position:relative; flex:0 0 auto;
+    }
+    .logo:before{
+      content:"";
+      position:absolute; inset:9px 10px 9px 10px;
+      border:2px solid rgba(11,15,20,.9);
+      border-left-color: transparent;
+      border-radius:999px;
+      transform: rotate(25deg);
+    }
+    .brand h1{
+      margin:0; font-size: 15px; line-height:1.1; letter-spacing:.2px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .brand p{
+      margin:0; color:var(--muted); font-size: 12px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+
+    .iconbtn{
+      width: var(--tap);
+      height: var(--tap);
+      border-radius: 14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+      user-select:none;
+    }
+    .iconbtn:active{transform:scale(.98)}
+    .iconbtn svg{opacity:.9}
+
+    .content{
+      flex:1;
+      overflow:auto;
+      padding: 12px 14px 110px; /* espaço pro bottom nav + socorro */
+      scroll-behavior:smooth;
+    }
+
+    .search{
+      display:flex; gap:10px; align-items:center;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: 16px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+    }
+    .search input{
+      flex:1;
+      background: transparent;
+      border:0;
+      outline:0;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .pill{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .pill.active{
+      color: var(--text);
+      border-color: rgba(57,182,255,.35);
+      background: rgba(57,182,255,.12);
+    }
+
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom: 12px;}
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+    }
+    .card + .card{margin-top:12px}
+
+    .card .title{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+    }
+    .card h2{margin:0; font-size: 14px; letter-spacing:.2px;}
+    .card p{margin:8px 0 0; color: var(--muted); font-size: 13px; line-height:1.35;}
+
+    .meta{
+      margin-top:10px;
+      display:flex; gap:8px; flex-wrap:wrap;
+      color: var(--muted); font-size: 12px;
+    }
+    .tag{
+      display:inline-flex; align-items:center; gap:6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.12);
+    }
+    .tag strong{color:var(--text); font-weight:600}
+
+    .actions{margin-top: 10px; display:flex; gap:10px; flex-wrap:wrap;}
+    .btn{
+      height: var(--tap);
+      padding: 0 14px;
+      border-radius: 16px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      cursor:pointer;
+      font-weight:600;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      user-select:none;
+    }
+    .btn.primary{
+      border-color: rgba(57,182,255,.45);
+      background: linear-gradient(135deg, rgba(57,182,255,.35), rgba(110,231,183,.18));
+    }
+    .btn.danger{
+      border-color: rgba(255,77,77,.55);
+      background: rgba(255,77,77,.14);
+    }
+    .btn:active{transform:scale(.99)}
+    .btn svg{opacity:.9}
+
+    .grid2{display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
+    .mini{
+      padding: 10px;
+      border-radius: 16px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+    }
+    .mini .k{color:var(--muted); font-size:12px}
+    .mini .v{margin-top:4px; font-weight:800; letter-spacing:.2px; font-size:13px}
+
+    .map{
+      height: 190px;
+      border-radius: 18px;
+      border:1px solid var(--line);
+      background:
+        radial-gradient(120px 120px at 20% 60%, rgba(57,182,255,.22), transparent 60%),
+        radial-gradient(160px 120px at 70% 40%, rgba(110,231,183,.16), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      position:relative;
+      overflow:hidden;
+      margin-top: 12px;
+    }
+    .map:before{
+      content:"";
+      position:absolute; inset:-20px;
+      background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,.06) 0, rgba(255,255,255,.06) 1px, transparent 1px, transparent 22px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0, rgba(255,255,255,.06) 1px, transparent 1px, transparent 22px);
+      opacity:.30;
+    }
+    .routeLine{position:absolute; inset:0; pointer-events:none;}
+    .routeLine svg{width:100%; height:100%}
+    .mapLabel{
+      position:absolute;
+      left:12px; top:12px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.25);
+      color: rgba(233,238,247,.9);
+      font-size: 12px;
+      backdrop-filter: blur(10px);
+      z-index:2;
+    }
+    .mapPin{
+      position:absolute;
+      width:10px;height:10px;border-radius:99px;
+      background: var(--brand2);
+      box-shadow: 0 0 0 6px rgba(110,231,183,.18);
+      z-index:2;
+    }
+    .mapPin.end{
+      background: var(--warn);
+      box-shadow: 0 0 0 6px rgba(255,176,32,.18);
+    }
+
+    .bottomnav{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      padding: 10px 10px 14px;
+      background: rgba(0,0,0,.18);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--line);
+      z-index:10;
+    }
+    .nav{display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;}
+    .navbtn{
+      height: 54px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      gap:5px;
+      cursor:pointer;
+      user-select:none;
+      font-size: 11px;
+      line-height:1;
+    }
+    .navbtn.active{
+      color: var(--text);
+      border-color: rgba(57,182,255,.35);
+      background: rgba(57,182,255,.10);
+    }
+    .navbtn svg{opacity:.92}
+
+    .screen{display:none}
+    .screen.active{display:block}
+
+    /* Club tabs */
+    .tabs{
+      display:flex;
+      gap:8px;
+      padding: 8px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      border-radius: 18px;
+      margin-top: 10px;
+    }
+    .tab{
+      flex:1;
+      height: 40px;
+      border-radius: 14px;
+      border:1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-weight:800;
+      font-size: 12px;
+      cursor:pointer;
+    }
+    .tab.active{
+      color: var(--text);
+      border-color: rgba(57,182,255,.35);
+      background: rgba(57,182,255,.12);
+    }
+
+    .gallery{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:8px;
+      margin-top: 12px;
+    }
+    .photo{
+      aspect-ratio: 1/1;
+      border-radius: 16px;
+      border:1px solid var(--line);
+      background:
+        radial-gradient(120px 120px at 30% 30%, rgba(57,182,255,.22), transparent 60%),
+        radial-gradient(120px 120px at 70% 70%, rgba(110,231,183,.14), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      position:relative;
+      overflow:hidden;
+    }
+    .photo:before{
+      content:"";
+      position:absolute; inset:-20px;
+      background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0, rgba(255,255,255,.05) 1px, transparent 1px, transparent 18px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0, rgba(255,255,255,.05) 1px, transparent 1px, transparent 18px);
+      opacity:.22;
+    }
+    .photo span{
+      position:absolute; left:10px; bottom:10px;
+      font-size: 11px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.22);
+      color: rgba(233,238,247,.9);
+      backdrop-filter: blur(10px);
+    }
+
+    /* Modal */
+    .modalWrap{
+      position:absolute; inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      padding: 16px;
+      z-index: 30;
+    }
+    .modalWrap.show{display:flex}
+    .modal{
+      width:100%;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(18,26,36,.98), rgba(15,22,32,.98));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      max-height: 82vh;
+      display:flex;
+      flex-direction:column;
+    }
+    .modalHeader{
+      padding: 14px 14px 10px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid var(--line);
+    }
+    .modalHeader h3{margin:0; font-size: 14px; letter-spacing:.2px;}
+    .modalBody{padding: 12px 14px 14px; overflow:auto;}
+
+    .field{display:flex; flex-direction:column; gap:6px; margin-bottom: 10px;}
+    .field label{font-size: 12px; color: var(--muted)}
+    .field input, .field select, .field textarea{
+      width:100%;
+      border-radius: 14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      padding: 12px 12px;
+      font-size: 14px;
+      outline:none;
+    }
+    textarea{min-height: 86px; resize: vertical}
+
+    .divider{height:1px; background: var(--line); margin: 12px 0;}
+
+    .toast{
+      position:absolute;
+      left: 12px; right:12px; bottom: 170px; /* acima do botão socorro */
+      padding: 10px 12px;
+      border-radius: 16px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.35);
+      backdrop-filter: blur(12px);
+      display:none;
+      font-size: 13px;
+      color: rgba(233,238,247,.92);
+      z-index: 25;
+    }
+    .toast.show{display:block; animation: pop .18s ease-out}
+    @keyframes pop{from{transform:translateY(8px);opacity:.4}to{transform:translateY(0);opacity:1}}
+
+    .small{color: var(--muted); font-size:12px; line-height:1.35;}
+
+    /* BOTÃO SOCORRO FIXO (grande) */
+    .sosWrap{
+      position:absolute;
+      left:0; right:0;
+      bottom: 86px; /* acima do bottom nav */
+      display:flex;
+      justify-content:center;
+      padding: 0 12px;
+      z-index: 20;
+      pointer-events:none; /* para permitir clique só no botão */
+    }
+    .sos{
+      pointer-events:auto;
+      width: 100%;
+      height: 62px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,77,77,.6);
+      background:
+        radial-gradient(600px 120px at 30% 40%, rgba(255,77,77,.35), transparent 55%),
+        linear-gradient(135deg, rgba(255,77,77,.32), rgba(255,176,32,.12));
+      color: rgba(255,255,255,.96);
+      font-weight: 1000;
+      letter-spacing:.6px;
+      font-size: 15px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      cursor:pointer;
+      box-shadow: 0 18px 40px rgba(255,77,77,.18);
+      user-select:none;
+    }
+    .sos:active{transform:scale(.99)}
+    .sos .badge{
+      width:34px;height:34px;border-radius:14px;
+      display:grid; place-items:center;
+      background: rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.18);
+    }
+
+    /* Club post composer */
+    .composer{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      border-radius: 18px;
+      padding: 10px;
+      margin-top: 12px;
+    }
+    .composerTop{
+      display:flex; gap:10px; align-items:center;
+    }
+    .avatar{
+      width:34px;height:34px;border-radius:14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      display:grid; place-items:center;
+      font-weight:900;
+      color: rgba(233,238,247,.9);
+    }
+    .composer textarea{
+      margin-top:10px;
+      width:100%;
+      min-height:70px;
+      border-radius: 16px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.14);
+      color: var(--text);
+      padding: 10px 12px;
+      outline: none;
+      font-size: 13px;
+    }
+    .composerActions{
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin-top:10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="phone">
+    <div class="statusbar">
+      <div id="clock">12:00</div>
+      <div class="dots" aria-hidden="true">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <span style="margin-left:6px; opacity:.9;">4G</span>
+      </div>
+    </div>
+
+    <div class="app">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div style="min-width:0">
+            <h1>MotoRoda</h1>
+            <p id="subtitle">Feed • Rotas e rolês</p>
+          </div>
+        </div>
+        <button class="iconbtn" id="btnOpenQuick" title="Ações rápidas" aria-label="Ações rápidas">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="content">
+        <!-- SCREEN: FEED -->
+        <section id="screen-feed" class="screen active">
+          <div class="search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <input id="searchInput" placeholder="Buscar rota, cidade, motoclub (ex: Recife → Piranhas)" />
+          </div>
+
+          <div class="row" style="justify-content:space-between">
+            <div class="row" style="margin:0">
+              <span class="pill active" data-filter="all">Tudo</span>
+              <span class="pill" data-filter="route">Rotas</span>
+              <span class="pill" data-filter="club">Motoclubs</span>
+            </div>
+            <span class="pill" id="btnSuggest">Sugestões</span>
+          </div>
+
+          <div id="feedList"></div>
+        </section>
+
+        <!-- SCREEN: CLUBS LIST -->
+        <section id="screen-clubs" class="screen">
+          <div class="card">
+            <div class="title">
+              <div>
+                <h2>Motoclubs</h2>
+                <p>Entre, crie comunidades fechadas e compartilhe viagens e fotos.</p>
+              </div>
+              <span class="tag"><strong>Feed do grupo</strong></span>
+            </div>
+
+            <div class="actions">
+              <button class="btn primary" id="btnCreateClub">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Criar motoclub
+              </button>
+              <button class="btn" id="btnJoinClub">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                  <path d="M20 8v6M17 11h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Entrar com convite
+              </button>
+            </div>
+          </div>
+
+          <div id="clubList"></div>
+        </section>
+
+        <!-- SCREEN: CLUB DETAIL (novo) -->
+        <section id="screen-clubdetail" class="screen">
+          <div id="clubDetailRoot"></div>
+        </section>
+
+        <!-- SCREEN: RIDE -->
+        <section id="screen-ride" class="screen">
+          <!-- NOVO: Planejar viagem (mock) -->
+          <div class="card">
+            <div class="title">
+              <div>
+                <h2>Planejar viagem</h2>
+                <p>Escolha origem/destino e veja sugestões de paradas, dormir e alertas na pista (MVP mock).</p>
+              </div>
+              <span class="tag"><strong>Planner</strong> simulado</span>
+            </div>
+
+            <div class="grid2" style="margin-top:12px">
+              <div class="field" style="margin:0">
+                <label>Origem</label>
+                <select id="planOrigin">
+                  <option value="Recife-PE">Recife-PE</option>
+                  <option value="Olinda-PE">Olinda-PE</option>
+                  <option value="Caruaru-PE">Caruaru-PE</option>
+                </select>
+              </div>
+
+              <div class="field" style="margin:0">
+                <label>Destino</label>
+                <select id="planDest">
+                  <option value="Fortaleza-CE">Ceará (Fortaleza-CE)</option>
+                  <option value="Juazeiro do Norte-CE">Ceará (Juazeiro do Norte-CE)</option>
+                  <option value="Sobral-CE">Ceará (Sobral-CE)</option>
+                  <option value="Piranhas-AL">Piranhas-AL</option>
+                </select>
+              </div>
+
+              <div class="field" style="margin:0">
+                <label>Estilo</label>
+                <select id="planStyle">
+                  <option value="paisagem">Paisagem / pontos bonitos</option>
+                  <option value="rapido">Mais rápido</option>
+                  <option value="economico">Econômico</option>
+                </select>
+              </div>
+
+              <div class="field" style="margin:0">
+                <label>Meta por dia</label>
+                <select id="planDailyKm">
+                  <option value="320">~320 km/dia</option>
+                  <option value="450">~450 km/dia</option>
+                  <option value="600">~600 km/dia</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="actions" style="margin-top:12px">
+              <button class="btn primary" id="btnPlanTrip">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M10 3L6 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M14 3l4 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M12 7v3M12 14v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Gerar sugestões (mock)
+              </button>
+              <button class="btn" id="btnUsePlanOnMap">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 18l-1 4 4-1 10-10-3-3L9 18z" fill="currentColor" opacity=".85"/>
+                  <path d="M14 7l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Aplicar no mapa
+              </button>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- NOVO: sugestões de dormir / hotéis -->
+            <h2 style="margin:0; font-size:13px">Sugestões de dormir (pontos da paisagem + hotéis)</h2>
+            <div id="sleepSuggestions" style="margin-top:10px"></div>
+
+            <div class="divider"></div>
+
+            <!-- NOVO: comentários na pista -->
+            <h2 style="margin:0; font-size:13px">Comentários na pista (alertas por trecho)</h2>
+            <div id="roadComments" style="margin-top:10px"></div>
+
+            <div class="divider"></div>
+
+            <!-- NOVO: viagens parecidas -->
+            <h2 style="margin:0; font-size:13px">Viagens parecidas (para copiar e ver comentários)</h2>
+            <div id="similarTrips" style="margin-top:10px"></div>
+
+            <p class="small" style="margin-top:12px">
+              Backend Java (futuro): GET /trips/similar?origin=&dest=&style= • GET /road-comments?routeId= • GET /stays?routeId=
+            </p>
+          </div>
+
+          <!-- Gravar rolê (o seu card existente) -->
+          <div class="card">
+            <div class="title">
+              <div>
+                <h2>Gravar rolê</h2>
+                <p>Comece a gravar e salve para você ou para o motoclub.</p>
+              </div>
+              <span class="tag"><strong id="gpsStatus">GPS</strong> simulado</span>
+            </div>
+
+            <div class="grid2" style="margin-top:12px">
+              <div class="mini">
+                <div class="k">Estado</div>
+                <div class="v" id="rideState">Parado</div>
+              </div>
+              <div class="mini">
+                <div class="k">Pontos gravados</div>
+                <div class="v" id="ridePoints">0</div>
+              </div>
+              <div class="mini">
+                <div class="k">Tempo</div>
+                <div class="v" id="rideTime">00:00</div>
+              </div>
+              <div class="mini">
+                <div class="k">Distância</div>
+                <div class="v" id="rideDistance">0.0 km</div>
+              </div>
+            </div>
+
+            <div class="map" aria-label="Mapa (mock)">
+              <div class="mapLabel" id="mapLabelRide">Recife → Piranhas (mock)</div>
+              <div class="routeLine" id="rideMapLine"></div>
+              <div class="mapPin" style="left:18%; top:62%"></div>
+              <div class="mapPin end" style="left:78%; top:32%"></div>
+            </div>
+
+            <div class="actions">
+              <button class="btn primary" id="btnStartRide">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M8 5v14l11-7-11-7z" fill="currentColor"/>
+                </svg>
+                Iniciar
+              </button>
+              <button class="btn" id="btnAddPoint">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 21s-7-4.4-7-11a7 7 0 1 1 14 0c0 6.6-7 11-7 11z" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="12" cy="10" r="2" fill="currentColor"/>
+                </svg>
+                Add ponto
+              </button>
+              <button class="btn danger" id="btnStopRide">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 6h12v12H6z" fill="currentColor"/>
+                </svg>
+                Finalizar
+              </button>
+            </div>
+
+            <p class="small" style="margin-top:10px">
+              No app real, os pontos viriam do GPS (Android: FusedLocationProviderClient). Aqui é modo “simulado”.
+            </p>
+          </div>
+
+          <!-- Salvar rolê (o seu card existente) -->
+          <div class="card">
+            <div class="title">
+              <div>
+                <h2>Salvar rolê</h2>
+                <p>Você pode publicar no seu perfil ou no feed do motoclub.</p>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn primary" id="btnOpenSaveRide">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2z" stroke="currentColor" stroke-width="2"/>
+                  <path d="M17 21v-8H7v8" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Abrir formulário de salvar
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SCREEN: PROFILE -->
+        <section id="screen-profile" class="screen">
+          <div class="card">
+            <div class="title">
+              <div>
+                <h2>Perfil</h2>
+                <p>Seu histórico de rotas e posts.</p>
+              </div>
+              <span class="tag"><strong>@joaorider</strong></span>
+            </div>
+
+            <div class="grid2" style="margin-top:12px">
+              <div class="mini">
+                <div class="k">Rotas salvas</div>
+                <div class="v" id="kpiRoutes">2</div>
+              </div>
+              <div class="mini">
+                <div class="k">Motoclubs</div>
+                <div class="v" id="kpiClubs">2</div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="actions">
+              <button class="btn" id="btnOpenSettings">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" stroke="currentColor" stroke-width="2"/>
+                  <path d="M19.4 15a7.8 7.8 0 0 0 .1-1l2-1.5-2-3.5-2.4.6a8 8 0 0 0-1.7-1l-.4-2.5H9.9l-.4 2.5a8 8 0 0 0-1.7 1L5.4 9l-2 3.5 2 1.5a7.8 7.8 0 0 0 .1 1l-2 1.5 2 3.5 2.4-.6a8 8 0 0 0 1.7 1l.4 2.5h4.2l.4-2.5a8 8 0 0 0 1.7-1l2.4.6 2-3.5-2-1.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                </svg>
+                Configurações
+              </button>
+              <button class="btn danger" id="btnLogout">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M10 17l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M15 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M21 21V3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Sair
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="title">
+              <div>
+                <h2>Minhas rotas</h2>
+                <p>Toque para ver detalhes, avaliar ou copiar.</p>
+              </div>
+            </div>
+            <div id="myRoutes"></div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- SOS FIXO -->
+      <div class="sosWrap">
+        <button class="sos" id="btnSOS" aria-label="Socorro">
+          <span class="badge" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2l10 18H2L12 2z" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 9v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="12" cy="17" r="1.2" fill="currentColor"/>
+            </svg>
+          </span>
+          SOCORRO
+        </button>
+      </div>
+
+      <div class="toast" id="toast"></div>
+
+      <div class="bottomnav">
+        <div class="nav">
+          <button class="navbtn active" data-nav="feed" aria-label="Feed">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M4 13h7V4H4v9zM13 20h7v-7h-7v7zM13 11h7V4h-7v7zM4 20h7v-5H4v5z" fill="currentColor" opacity=".9"/>
+            </svg>
+            Feed
+          </button>
+          <button class="navbtn" data-nav="clubs" aria-label="Motoclubs">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3z" fill="currentColor" opacity=".9"/>
+              <path d="M8 11c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3z" fill="currentColor" opacity=".9"/>
+              <path d="M8 13c-2.8 0-5 2.2-5 5v1h10v-1c0-2.8-2.2-5-5-5z" fill="currentColor" opacity=".75"/>
+              <path d="M16 13c-2.2 0-4 1.8-4 4v2h9v-1c0-2.8-2.2-5-5-5z" fill="currentColor" opacity=".55"/>
+            </svg>
+            Clubs
+          </button>
+          <button class="navbtn" data-nav="ride" aria-label="Gravar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 8v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Gravar
+          </button>
+          <button class="navbtn" data-nav="profile" aria-label="Perfil">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="8" r="4" fill="currentColor" opacity=".9"/>
+              <path d="M4 21a8 8 0 0 1 16 0" fill="currentColor" opacity=".65"/>
+            </svg>
+            Perfil
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal -->
+      <div class="modalWrap" id="modalWrap" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="modal">
+          <div class="modalHeader">
+            <h3 id="modalTitle">Modal</h3>
+            <button class="iconbtn" id="btnCloseModal" aria-label="Fechar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="modalBody" id="modalBody"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ======== STATE / MOCK DATA ========
+    const state = {
+      filter: "all",
+      currentScreen: "feed",
+      ride: { running:false, seconds:0, points:[], distanceKm:0 },
+      user: { handle: "@joaorider", initials: "JV" },
+      clubs: [
+        {
+          id: 1,
+          name: "Asfalto Nordestino",
+          city: "Recife-PE",
+          private: true,
+          members: 28,
+          role: "Admin",
+          isMember: true,
+          membersList: [
+            { handle:"@joaorider", role:"Admin" },
+            { handle:"@riderleo", role:"Moderador" },
+            { handle:"@anarider", role:"Membro" },
+            { handle:"@diegomoto", role:"Membro" },
+            { handle:"@luisestrada", role:"Membro" },
+          ],
+          trips: [
+            { id: 9001, title:"Recife → Piranhas (AL) — Estrada segura", by:"@riderleo", rating:4.6, distance:"392 km", when:"Dom • 06:10", comments: 18 },
+            { id: 9002, title:"Serra + curvas (rolê curto)", by:"@anarider", rating:4.9, distance:"86 km", when:"Sáb • 05:40", comments: 9 },
+          ],
+          photos: [
+            { id: 1, label:"Serra", by:"@anarider" },
+            { id: 2, label:"Posto", by:"@riderleo" },
+            { id: 3, label:"Pôr do sol", by:"@diegomoto" },
+            { id: 4, label:"Galera", by:"@joaorider" },
+            { id: 5, label:"Estrada", by:"@luisestrada" },
+            { id: 6, label:"Café", by:"@anarider" },
+          ]
+        },
+        {
+          id: 2,
+          name: "Rota do Sertão",
+          city: "Piranhas-AL",
+          private: false,
+          members: 112,
+          role: "Visitante",
+          isMember: false,
+          membersList: [
+            { handle:"@sertanejo", role:"Admin" },
+            { handle:"@pedrooff", role:"Membro" },
+            { handle:"@ridercampos", role:"Membro" },
+          ],
+          trips: [
+            { id: 9101, title:"Piranhas → Canindé (vista top)", by:"@sertanejo", rating:4.7, distance:"118 km", when:"Hoje • 07:00", comments: 7 },
+          ],
+          photos: [
+            { id: 1, label:"Cânion", by:"@sertanejo" },
+            { id: 2, label:"Rio", by:"@pedrooff" },
+            { id: 3, label:"Estrada", by:"@ridercampos" },
+          ]
+        }
+      ],
+      routes: [
+        {
+          id: 101, type:"route",
+          title:"Recife → Piranhas (AL) — Estrada segura",
+          by:"RiderLeo",
+          rating:4.6, distance:"392 km", duration:"6h 40m",
+          visibility:"Pública",
+          notes:[
+            "Abastecer em Arcoverde (melhor posto e banheiro limpo).",
+            "Trecho após Delmiro Gouveia tem asfalto irregular — atenção."
+          ],
+          tags:["Viagem","Estrada","Paradas boas"],
+          likes:214, comments:39
+        },
+        {
+          id: 102, type:"route",
+          title:"Serra + curvas (rolê curto)",
+          by:"AnaRider",
+          rating:4.9, distance:"86 km", duration:"1h 50m",
+          visibility:"Motoclub", club:"Asfalto Nordestino",
+          notes:[
+            "Curvas bonitas e pouco trânsito cedo (06:00–08:00).",
+            "Evite depois de chuva: trecho escorregadio."
+          ],
+          tags:["Curvas","Cedo","Paisagem"],
+          likes:88, comments:12
+        },
+        {
+          id: 201, type:"club",
+          title:"Motoclub: Asfalto Nordestino",
+          by:"Você",
+          visibility:"Fechado",
+          notes:[
+            "Grupo com feed: viagens + fotos + membros.",
+            "Entrada por convite e aprovação."
+          ],
+          tags:["Fechado","Recife","Rolês"],
+          likes:0, comments:0
+        }
+      ],
+      myRoutes: [
+        { id: 301, title:"Recife → Gravatá (fim de semana)", rating:5, distance:"85 km", visibility:"Privada" },
+        { id: 302, title:"Rolê noturno (cidade)", rating:4, distance:"28 km", visibility:"Motoclub" }
+      ],
+      clubDetail: { clubId: null, tab: "trips" } // trips | photos | members
+    };
+
+    // ======== HELPERS ========
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+    function toast(msg){
+      const el = $("#toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(toast._t);
+      toast._t = setTimeout(()=> el.classList.remove("show"), 2200);
+    }
+
+    function setSubtitle(){
+      const map = {
+        feed: "Feed • Rotas e rolês",
+        clubs: "Motoclubs • Comunidades",
+        clubdetail: "Motoclub • Feed do grupo",
+        ride: "Gravar • Salvar rota",
+        profile: "Perfil • Histórico"
+      };
+      $("#subtitle").textContent = map[state.currentScreen] || "";
+    }
+
+    function switchScreen(name){
+      state.currentScreen = name;
+      $$(".screen").forEach(s => s.classList.remove("active"));
+      $("#screen-" + name).classList.add("active");
+      $$(".navbtn").forEach(b => b.classList.toggle("active", b.dataset.nav === name));
+      setSubtitle();
+      if(name === "profile") renderMyRoutes();
+      if(name === "clubs") renderClubs();
+      if(name === "feed") renderFeed();
+    }
+
+    function icon(name){
+      if(name === "copy") return `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M9 9h10v10H9V9z" stroke="currentColor" stroke-width="2"/>
+          <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="2"/>
+        </svg>`;
+      if(name === "open") return `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M14 3h7v7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M10 14L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M21 14v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>`;
+      if(name === "star") return `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M12 17.3l-5.2 3 1.4-5.9L3 9.9l6.1-.5L12 4l2.9 5.4 6.1.5-5.2 4.5 1.4 5.9L12 17.3z" fill="currentColor"/>
+        </svg>`;
+      if(name === "lock") return `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="2"/>
+          <rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="2"/>
+        </svg>`;
+      if(name === "camera") return `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M4 7h3l2-2h6l2 2h3v14H4V7z" stroke="currentColor" stroke-width="2"/>
+          <circle cx="12" cy="14" r="3" stroke="currentColor" stroke-width="2"/>
+        </svg>`;
+      if(name === "road") return `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M10 3L6 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M14 3l4 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M12 7v3M12 14v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>`;
+      if(name === "users") return `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="2"/>
+          <path d="M3 21a6 6 0 0 1 12 0" stroke="currentColor" stroke-width="2"/>
+          <circle cx="17" cy="9" r="2" stroke="currentColor" stroke-width="2" opacity=".8"/>
+          <path d="M15 21a5 5 0 0 1 6 0" stroke="currentColor" stroke-width="2" opacity=".8"/>
+        </svg>`;
+      return "";
+    }
+
+    function mockLine(seed){
+      const s = (seed % 97) / 97;
+      const a = 30 + Math.round(40*s);
+      const b = 60 - Math.round(20*s);
+      const c = 45 + Math.round(25*s);
+      const d = 30 + Math.round(30*s);
+      return `
+        <svg viewBox="0 0 100 60" preserveAspectRatio="none">
+          <path d="M10,45 C${a},${b} ${c},${d} 90,18"
+            stroke="rgba(57,182,255,.85)" stroke-width="2.6" fill="none"
+            stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10,45 C${a},${b} ${c},${d} 90,18"
+            stroke="rgba(110,231,183,.35)" stroke-width="7" fill="none"
+            stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+    }
+
+    // ======== MODAL ========
+    function openModal(title, html){
+      $("#modalTitle").textContent = title;
+      $("#modalBody").innerHTML = html;
+      $("#modalWrap").classList.add("show");
+      $("#modalWrap").setAttribute("aria-hidden","false");
+    }
+    function closeModal(){
+      $("#modalWrap").classList.remove("show");
+      $("#modalWrap").setAttribute("aria-hidden","true");
+      $("#modalBody").innerHTML = "";
+    }
+
+    // ======== FEED RENDER ========
+    function renderFeed(){
+      const q = ($("#searchInput").value || "").trim().toLowerCase();
+      const list = $("#feedList");
+      list.innerHTML = "";
+
+      const items = state.routes
+        .filter(it => {
+          if(state.filter === "route" && it.type !== "route") return false;
+          if(state.filter === "club" && it.type !== "club") return false;
+          return true;
+        })
+        .filter(it => {
+          if(!q) return true;
+          const blob = (it.title + " " + it.by + " " + (it.club||"") + " " + (it.tags||[]).join(" ")).toLowerCase();
+          return blob.includes(q);
+        });
+
+      if(items.length === 0){
+        list.innerHTML = `
+          <div class="card">
+            <h2 style="margin:0; font-size:14px">Nada encontrado</h2>
+            <p>Tente buscar por cidades (ex: Recife, Piranhas), ou toque em “Sugestões”.</p>
+          </div>
+        `;
+        return;
+      }
+
+      items.forEach(it => {
+        const isRoute = it.type === "route";
+        const headerRight = isRoute
+          ? `<span class="tag">${icon("star")} <strong>${it.rating}</strong></span>`
+          : `<span class="tag">${icon("lock")} <strong>${it.visibility}</strong></span>`;
+
+        const tags = (it.tags||[]).map(t => `<span class="tag">${t}</span>`).join("");
+
+        const extra = isRoute ? `
+          <div class="meta">
+            <span class="tag"><strong>${it.distance}</strong></span>
+            <span class="tag"><strong>${it.duration}</strong></span>
+            ${it.club ? `<span class="tag">${icon("lock")} <strong>${it.club}</strong></span>` : ""}
+          </div>
+        ` : `
+          <div class="meta">
+            <span class="tag"><strong>${it.by}</strong></span>
+            <span class="tag">Feed do grupo <strong>Viagens + Fotos</strong></span>
+          </div>
+        `;
+
+        const actions = isRoute ? `
+          <div class="actions">
+            <button class="btn primary" onclick="openRoute(${it.id})">${icon("open")} Ver detalhes</button>
+            <button class="btn" onclick="copyRoute(${it.id})">${icon("copy")} Copiar rota</button>
+            <button class="btn" onclick="rateRoute(${it.id})">${icon("star")} Avaliar</button>
+          </div>
+        ` : `
+          <div class="actions">
+            <button class="btn primary" onclick="openClubByName('Asfalto Nordestino')">${icon("open")} Abrir motoclub</button>
+          </div>
+        `;
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="title">
+            <div style="min-width:0">
+              <h2>${it.title}</h2>
+              <p>por <strong style="color:var(--text)">${it.by}</strong> • ${isRoute ? `${it.likes} curtidas • ${it.comments} comentários` : "comunidade"}</p>
+            </div>
+            ${headerRight}
+          </div>
+
+          ${extra}
+
+          <div class="map" style="height:160px">
+            <div class="mapLabel">${isRoute ? "Mapa (mock) • rota" : "Mapa (mock) • motoclub"}</div>
+            <div class="routeLine">${mockLine(it.id)}</div>
+            <div class="mapPin" style="left:18%; top:64%"></div>
+            <div class="mapPin end" style="left:78%; top:30%"></div>
+          </div>
+
+          <div class="meta" style="margin-top:10px">${tags}</div>
+
+          <p style="margin-top:10px">${it.notes[0] || ""}</p>
+          ${it.notes[1] ? `<p style="margin-top:6px">${it.notes[1]}</p>` : ""}
+
+          ${actions}
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    // ======== ROUTE ACTIONS ========
+    window.openRoute = (id) => {
+      const it = state.routes.find(x => x.id === id);
+      if(!it) return;
+
+      openModal("Detalhe da rota", `
+        <div class="card" style="margin:0">
+          <div class="title">
+            <div style="min-width:0">
+              <h2>${it.title}</h2>
+              <p>por <strong style="color:var(--text)">${it.by}</strong> • ${it.visibility}</p>
+            </div>
+            <span class="tag">${icon("star")} <strong>${it.rating}</strong></span>
+          </div>
+
+          <div class="meta">
+            <span class="tag"><strong>${it.distance}</strong></span>
+            <span class="tag"><strong>${it.duration}</strong></span>
+            <span class="tag">Comentários <strong>${it.comments}</strong></span>
+          </div>
+
+          <div class="map" style="height:180px">
+            <div class="mapLabel">Mapa (mock) • visualizar rota</div>
+            <div class="routeLine">${mockLine(it.id)}</div>
+            <div class="mapPin" style="left:18%; top:64%"></div>
+            <div class="mapPin end" style="left:78%; top:30%"></div>
+          </div>
+
+          <div class="divider"></div>
+          <h2 style="margin:0; font-size:13px">Notas da galera</h2>
+          <ul class="small" style="margin:10px 0 0; padding-left:18px">
+            ${(it.notes||[]).map(n => `<li style="margin:6px 0">${n}</li>`).join("")}
+          </ul>
+
+          <div class="actions">
+            <button class="btn primary" onclick="copyRoute(${it.id})">${icon("copy")} Copiar rota</button>
+            <button class="btn" onclick="rateRoute(${it.id})">${icon("star")} Avaliar</button>
+          </div>
+
+          <p class="small" style="margin-top:10px">
+            * No app real, aqui você veria comentários por trecho (km 0–50, 50–150…).
+          </p>
+        </div>
+      `);
+    };
+
+    window.copyRoute = (id) => {
+      const it = state.routes.find(x => x.id === id);
+      if(!it) return;
+      openModal("Copiar rota", `
+        <div class="field">
+          <label>Título da nova rota (cópia)</label>
+          <input id="copyTitle" value="${it.title} (cópia)" />
+        </div>
+        <div class="field">
+          <label>Visibilidade</label>
+          <select id="copyVis">
+            <option value="Privada">Privada</option>
+            <option value="Motoclub">Motoclub</option>
+            <option value="Pública">Pública</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Motoclub (se escolher “Motoclub”)</label>
+          <select id="copyClub">
+            ${state.clubs.map(c=>`<option value="${c.id}">${c.name}</option>`).join("")}
+          </select>
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="doCopyRoute(${it.id})">${icon("copy")} Confirmar cópia</button>
+          <button class="btn" onclick="closeModal()">Cancelar</button>
+        </div>
+        <p class="small" style="margin-top:10px">
+          No backend Java: POST /routes/{id}/copy cria uma rota nova.
+        </p>
+      `);
+    };
+
+    window.doCopyRoute = (id) => {
+      const title = ($("#copyTitle").value || "").trim() || "Rota (cópia)";
+      const vis = $("#copyVis").value;
+      state.myRoutes.unshift({
+        id: Math.floor(1000 + Math.random()*9000),
+        title, rating: 0, distance: "—", visibility: vis
+      });
+      closeModal();
+      toast("Rota copiada para seu perfil ✅");
+    };
+
+    window.rateRoute = (id) => {
+      const it = state.routes.find(x => x.id === id);
+      if(!it) return;
+      openModal("Avaliar rota", `
+        <div class="card" style="margin:0">
+          <h2 style="margin:0; font-size:14px">${it.title}</h2>
+          <p class="small" style="margin-top:6px">Dê uma nota e deixe um comentário pra ajudar a próxima galera.</p>
+
+          <div class="divider"></div>
+
+          <div class="field">
+            <label>Nota</label>
+            <select id="rateStar">
+              <option value="5">5 — excelente</option>
+              <option value="4">4 — bom</option>
+              <option value="3">3 — ok</option>
+              <option value="2">2 — ruim</option>
+              <option value="1">1 — péssimo</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Comentário</label>
+            <textarea id="rateComment" placeholder="Ex.: melhor parar em Arcoverde pra abastecer..."></textarea>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" onclick="submitRating(${it.id})">${icon("star")} Enviar</button>
+            <button class="btn" onclick="closeModal()">Cancelar</button>
+          </div>
+
+          <p class="small" style="margin-top:10px">
+            Backend: POST /routes/{id}/ratings
+          </p>
+        </div>
+      `);
+    };
+
+    window.submitRating = (id) => {
+      closeModal();
+      toast("Avaliação enviada! Obrigado 🙌");
+    };
+
+    // ======== CLUB LIST / DETAIL ========
+    function renderClubs(){
+      const list = $("#clubList");
+      list.innerHTML = "";
+      state.clubs.forEach(c => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="title">
+            <div style="min-width:0">
+              <h2>${c.name}</h2>
+              <p>${c.city} • ${c.private ? "Fechado (convite)" : "Aberto"} • Status: <strong style="color:var(--text)">${c.isMember ? "Membro" : "Visitante"}</strong></p>
+            </div>
+            <span class="tag">${c.private ? icon("lock") : ""}<strong>${c.private ? "Fechado" : "Aberto"}</strong></span>
+          </div>
+
+          <div class="meta">
+            <span class="tag">Membros <strong>${c.members}</strong></span>
+            <span class="tag">Viagens <strong>${c.trips.length}</strong></span>
+            <span class="tag">Fotos <strong>${c.photos.length}</strong></span>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" onclick="openClub(${c.id})">${icon("open")} Abrir</button>
+            ${c.isMember ? `<button class="btn" onclick="newClubRide(${c.id})">${icon("road")} Gravar pro grupo</button>` : `<button class="btn" onclick="requestJoin(${c.id})">${icon("users")} Solicitar entrada</button>`}
+          </div>
+        `;
+        list.appendChild(card);
+      });
+      $("#kpiClubs").textContent = state.clubs.filter(c=>c.isMember).length;
+    }
+
+    window.openClubByName = (name) => {
+      const c = state.clubs.find(x => x.name === name);
+      if(!c) return;
+      openClub(c.id);
+    };
+
+    window.openClub = (id) => {
+      state.clubDetail.clubId = id;
+      state.clubDetail.tab = "trips";
+      renderClubDetail();
+      switchScreen("clubdetail");
+      toast("Motoclub aberto ✅");
+    };
+
+    function renderClubDetail(){
+      const root = $("#clubDetailRoot");
+      const club = state.clubs.find(c => c.id === state.clubDetail.clubId);
+      if(!club){
+        root.innerHTML = `<div class="card"><h2 style="margin:0;font-size:14px">Motoclub não encontrado</h2></div>`;
+        return;
+      }
+
+      const joinBlock = club.isMember ? `
+        <div class="actions">
+          <button class="btn" onclick="inviteMember(${club.id})">${icon("users")} Convidar</button>
+          <button class="btn danger" onclick="leaveClub(${club.id})">Sair do motoclub</button>
+        </div>
+      ` : `
+        <div class="actions">
+          <button class="btn primary" onclick="requestJoin(${club.id})">${icon("users")} Entrar</button>
+        </div>
+      `;
+
+      const composer = club.isMember ? `
+        <div class="composer">
+          <div class="composerTop">
+            <div class="avatar">${state.user.initials}</div>
+            <div style="min-width:0">
+              <div style="font-weight:900; letter-spacing:.2px">${state.user.handle}</div>
+              <div class="small">Compartilhe sua viagem ou foto no grupo</div>
+            </div>
+          </div>
+
+          <textarea id="clubPostText" placeholder="Ex.: fiz Recife → Piranhas hoje. Melhor parar em Arcoverde..."></textarea>
+
+          <div class="composerActions">
+            <button class="btn" onclick="clubPostTrip(${club.id})">${icon("road")} Postar viagem</button>
+            <button class="btn" onclick="clubPostPhoto(${club.id})">${icon("camera")} Postar foto</button>
+            <button class="btn primary" onclick="clubPostQuick(${club.id})">${icon("open")} Publicar</button>
+          </div>
+
+          <p class="small" style="margin-top:8px">MVP: posts mock. Backend: POST /clubs/{id}/posts</p>
+        </div>
+      ` : `
+        <div class="card" style="margin-top:12px">
+          <h2 style="margin:0;font-size:13px">Você está como visitante</h2>
+          <p>Entre no motoclub para postar viagens e fotos.</p>
+        </div>
+      `;
+
+      root.innerHTML = `
+        <div class="card">
+          <div class="title">
+            <div style="min-width:0">
+              <h2>${club.name}</h2>
+              <p>${club.city} • ${club.private ? "Fechado (convite)" : "Aberto"} • ${club.isMember ? "Você é membro" : "Você é visitante"}</p>
+            </div>
+            <span class="tag">${club.private ? icon("lock") : ""}<strong>${club.private ? "Fechado" : "Aberto"}</strong></span>
+          </div>
+
+          <div class="meta">
+            <span class="tag">Membros <strong>${club.members}</strong></span>
+            <span class="tag">Viagens <strong>${club.trips.length}</strong></span>
+            <span class="tag">Fotos <strong>${club.photos.length}</strong></span>
+          </div>
+
+          ${joinBlock}
+
+          <div class="tabs">
+            <button class="tab ${state.clubDetail.tab==='trips'?'active':''}" onclick="clubTab('trips')">${icon("road")} Viagens</button>
+            <button class="tab ${state.clubDetail.tab==='photos'?'active':''}" onclick="clubTab('photos')">${icon("camera")} Fotos</button>
+            <button class="tab ${state.clubDetail.tab==='members'?'active':''}" onclick="clubTab('members')">${icon("users")} Membros</button>
+          </div>
+
+          ${composer}
+        </div>
+
+        <div id="clubTabContent"></div>
+      `;
+
+      renderClubTabContent();
+    }
+
+    window.clubTab = (tab) => {
+      state.clubDetail.tab = tab;
+      renderClubDetail(); // re-render completo pra manter tabs + composer
+    };
+
+    function renderClubTabContent(){
+      const club = state.clubs.find(c => c.id === state.clubDetail.clubId);
+      const tabRoot = $("#clubTabContent");
+      if(!club) return;
+
+      if(state.clubDetail.tab === "trips"){
+        tabRoot.innerHTML = club.trips.map(t => `
+          <div class="card">
+            <div class="title">
+              <div style="min-width:0">
+                <h2>${t.title}</h2>
+                <p>por <strong style="color:var(--text)">${t.by}</strong> • ${t.when}</p>
+              </div>
+              <span class="tag">${icon("star")} <strong>${t.rating}</strong></span>
+            </div>
+            <div class="meta">
+              <span class="tag"><strong>${t.distance}</strong></span>
+              <span class="tag">Comentários <strong>${t.comments}</strong></span>
+            </div>
+            <div class="map" style="height:170px">
+              <div class="mapLabel">Mapa (mock) • viagem do grupo</div>
+              <div class="routeLine">${mockLine(t.id)}</div>
+              <div class="mapPin" style="left:18%; top:64%"></div>
+              <div class="mapPin end" style="left:78%; top:30%"></div>
+            </div>
+            <div class="actions">
+              <button class="btn primary" onclick="copyClubTrip(${club.id}, ${t.id})">${icon("copy")} Copiar rota</button>
+              <button class="btn" onclick="commentClubTrip(${club.id}, ${t.id})">${icon("open")} Comentar</button>
+            </div>
+          </div>
+        `).join("");
+        return;
+      }
+
+      if(state.clubDetail.tab === "photos"){
+        tabRoot.innerHTML = `
+          <div class="card">
+            <div class="title">
+              <div>
+                <h2>Fotos do grupo</h2>
+                <p>Momentos do rolê (MVP).</p>
+              </div>
+              <span class="tag"><strong>${club.photos.length}</strong> itens</span>
+            </div>
+            <div class="gallery">
+              ${club.photos.map(p => `
+                <div class="photo" onclick="openPhoto('${club.name}', '${p.label}', '${p.by}')">
+                  <span>${p.label} • ${p.by}</span>
+                </div>
+              `).join("")}
+            </div>
+            ${club.isMember ? `
+              <div class="actions" style="margin-top:12px">
+                <button class="btn primary" onclick="clubPostPhoto(${club.id})">${icon("camera")} Postar foto</button>
+              </div>
+            ` : ``}
+          </div>
+        `;
+        return;
+      }
+
+      if(state.clubDetail.tab === "members"){
+        tabRoot.innerHTML = `
+          <div class="card">
+            <div class="title">
+              <div>
+                <h2>Membros</h2>
+                <p>Lista de membros e cargos.</p>
+              </div>
+              <span class="tag"><strong>${club.membersList.length}</strong> visíveis</span>
+            </div>
+
+            ${club.membersList.map(m => `
+              <div class="mini" style="margin-top:10px">
+                <div style="display:flex; justify-content:space-between; gap:10px; align-items:center">
+                  <div style="min-width:0">
+                    <div style="font-weight:900">${m.handle}</div>
+                    <div class="small" style="margin-top:2px">${m.role}</div>
+                  </div>
+                  <span class="tag"><strong>${m.role}</strong></span>
+                </div>
+              </div>
+            `).join("")}
+
+            ${club.isMember ? `
+              <div class="actions" style="margin-top:12px">
+                <button class="btn" onclick="inviteMember(${club.id})">${icon("users")} Convidar</button>
+              </div>
+            ` : ``}
+          </div>
+        `;
+        return;
+      }
+    }
+
+    window.openPhoto = (clubName, label, by) => {
+      openModal("Foto (MVP)", `
+        <div class="card" style="margin:0">
+          <h2 style="margin:0;font-size:14px">${label}</h2>
+          <p class="small" style="margin-top:6px">${clubName} • enviada por <strong style="color:var(--text)">${by}</strong></p>
+          <div class="map" style="height:220px">
+            <div class="mapLabel">Imagem (mock)</div>
+          </div>
+          <div class="actions">
+            <button class="btn" onclick="closeModal()">Fechar</button>
+          </div>
+        </div>
+      `);
+    };
+
+    window.copyClubTrip = (clubId, tripId) => {
+      const club = state.clubs.find(c=>c.id===clubId);
+      const t = club?.trips.find(x=>x.id===tripId);
+      if(!t) return;
+      state.myRoutes.unshift({
+        id: Math.floor(1000 + Math.random()*9000),
+        title: t.title + " (cópia do club)",
+        rating: 0,
+        distance: t.distance,
+        visibility: "Privada"
+      });
+      toast("Rota copiada pro seu perfil ✅");
+    };
+
+    window.commentClubTrip = (clubId, tripId) => {
+      openModal("Comentar viagem", `
+        <div class="field">
+          <label>Comentário</label>
+          <textarea id="clubTripComment" placeholder="Ex.: no km 120 tem buraco..."></textarea>
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="doCommentClubTrip(${clubId}, ${tripId})">Enviar</button>
+          <button class="btn" onclick="closeModal()">Cancelar</button>
+        </div>
+      `);
+    };
+
+    window.doCommentClubTrip = (clubId, tripId) => {
+      closeModal();
+      toast("Comentário enviado 💬");
+    };
+
+    window.requestJoin = (clubId) => {
+      const club = state.clubs.find(c=>c.id===clubId);
+      if(!club) return;
+      if(!club.private){
+        // entra direto
+        club.isMember = true;
+        club.role = "Membro";
+        club.members += 1;
+        club.membersList.push({ handle: state.user.handle, role:"Membro" });
+        toast("Você entrou no motoclub ✅");
+        if(state.currentScreen === "clubdetail") renderClubDetail();
+        if(state.currentScreen === "clubs") renderClubs();
+        $("#kpiClubs").textContent = state.clubs.filter(c=>c.isMember).length;
+        return;
+      }
+      openModal("Solicitar entrada", `
+        <p class="small">Este motoclub é <strong style="color:var(--text)">fechado</strong>. Envie uma mensagem para solicitar entrada.</p>
+        <div class="field" style="margin-top:10px">
+          <label>Mensagem</label>
+          <textarea id="joinMsg" placeholder="Ex.: Sou de Recife, faço rolês aos sábados..."></textarea>
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="doRequestJoin(${clubId})">Enviar</button>
+          <button class="btn" onclick="closeModal()">Cancelar</button>
+        </div>
+        <p class="small" style="margin-top:10px">Backend: POST /clubs/${clubId}/join-requests</p>
+      `);
+    };
+
+    window.doRequestJoin = (clubId) => {
+      closeModal();
+      toast("Pedido enviado ✅ (mock)");
+    };
+
+    window.leaveClub = (clubId) => {
+      const club = state.clubs.find(c=>c.id===clubId);
+      if(!club) return;
+      club.isMember = false;
+      club.role = "Visitante";
+      club.members = Math.max(0, club.members - 1);
+      club.membersList = club.membersList.filter(m => m.handle !== state.user.handle);
+      toast("Você saiu do motoclub.");
+      renderClubDetail();
+      renderClubs();
+      $("#kpiClubs").textContent = state.clubs.filter(c=>c.isMember).length;
+    };
+
+    window.inviteMember = (clubId) => {
+      openModal("Convidar membro", `
+        <div class="field">
+          <label>Código de convite (mock)</label>
+          <input value="NRD-${Math.floor(1000+Math.random()*9000)}" readonly />
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="closeModal()">OK</button>
+        </div>
+        <p class="small" style="margin-top:10px">Backend: POST /clubs/${clubId}/invites</p>
+      `);
+    };
+
+    // Posts no club
+    window.clubPostTrip = (clubId) => {
+      const club = state.clubs.find(c=>c.id===clubId);
+      if(!club || !club.isMember){ toast("Entre no grupo para postar."); return; }
+      const text = ($("#clubPostText")?.value || "").trim() || "Minha viagem (sem descrição).";
+      club.trips.unshift({
+        id: Math.floor(9000 + Math.random()*9000),
+        title: "Viagem compartilhada • " + text.slice(0, 32) + (text.length>32 ? "..." : ""),
+        by: state.user.handle,
+        rating: 5.0,
+        distance: state.ride.distanceKm ? state.ride.distanceKm.toFixed(1)+" km" : "—",
+        when: "Agora",
+        comments: 0
+      });
+      toast("Viagem postada no grupo ✅");
+      state.clubDetail.tab = "trips";
+      renderClubDetail();
+    };
+
+    window.clubPostPhoto = (clubId) => {
+      const club = state.clubs.find(c=>c.id===clubId);
+      if(!club || !club.isMember){ toast("Entre no grupo para postar."); return; }
+      const label = "Foto " + (club.photos.length + 1);
+      club.photos.unshift({ id: Math.floor(1+Math.random()*9999), label, by: state.user.handle });
+      toast("Foto postada no grupo 📸");
+      state.clubDetail.tab = "photos";
+      renderClubDetail();
+    };
+
+    window.clubPostQuick = (clubId) => {
+      const text = ($("#clubPostText")?.value || "").trim();
+      if(!text){ toast("Escreva algo antes de publicar."); return; }
+      // decisão simples: se texto menciona "foto", vai para fotos; senão trips
+      if(text.toLowerCase().includes("foto")){
+        clubPostPhoto(clubId);
+      } else {
+        clubPostTrip(clubId);
+      }
+      const ta = $("#clubPostText");
+      if(ta) ta.value = "";
+    };
+
+    window.newClubRide = (clubId) => {
+      const club = state.clubs.find(c=>c.id===clubId);
+      switchScreen("ride");
+      $("#mapLabelRide").textContent = `Rolê do grupo: ${club ? club.name : "Motoclub"} (mock)`;
+      toast("Pronto pra gravar pro grupo 🏍️");
+    };
+
+    // ======== CLUB CREATE / JOIN MODALS ========
+    $("#btnCreateClub").addEventListener("click", () => {
+      openModal("Criar motoclub", `
+        <div class="field">
+          <label>Nome</label>
+          <input id="clubName" placeholder="Ex.: Asfalto Nordestino" />
+        </div>
+        <div class="field">
+          <label>Cidade base</label>
+          <input id="clubCity" placeholder="Ex.: Recife-PE" />
+        </div>
+        <div class="field">
+          <label>Tipo</label>
+          <select id="clubType">
+            <option value="Fechado">Fechado (convite)</option>
+            <option value="Aberto">Aberto</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="doCreateClub()">Criar</button>
+          <button class="btn" onclick="closeModal()">Cancelar</button>
+        </div>
+        <p class="small" style="margin-top:10px">Backend: POST /clubs</p>
+      `);
+    });
+
+    window.doCreateClub = () => {
+      const name = ($("#clubName").value || "").trim() || "Novo Motoclub";
+      const city = ($("#clubCity").value || "").trim() || "Brasil";
+      const type = $("#clubType").value;
+      const club = {
+        id: Math.floor(10 + Math.random()*9000),
+        name, city,
+        private: type === "Fechado",
+        members: 1,
+        role: "Admin",
+        isMember: true,
+        membersList: [{ handle: state.user.handle, role:"Admin" }],
+        trips: [],
+        photos: []
+      };
+      state.clubs.unshift(club);
+      closeModal();
+      toast("Motoclub criado ✅");
+      renderClubs();
+      $("#kpiClubs").textContent = state.clubs.filter(c=>c.isMember).length;
+      openClub(club.id);
+    };
+
+    $("#btnJoinClub").addEventListener("click", () => {
+      openModal("Entrar com convite", `
+        <div class="field">
+          <label>Código do convite</label>
+          <input id="inviteCode" placeholder="Ex.: NRD-4F8A2" />
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="doJoinClub()">Entrar</button>
+          <button class="btn" onclick="closeModal()">Cancelar</button>
+        </div>
+        <p class="small" style="margin-top:10px">Backend: POST /clubs/join</p>
+      `);
+    });
+
+    window.doJoinClub = () => {
+      closeModal();
+      toast("Convite aceito ✅ (mock)");
+    };
+
+    // ======== QUICK ACTIONS (+) ========
+    $("#btnOpenQuick").addEventListener("click", () => {
+      openModal("Ações rápidas", `
+        <div class="actions" style="margin-top:0">
+          <button class="btn primary" onclick="switchScreen('ride'); closeModal(); toast('Pronto para gravar ✅')">
+            ${icon("open")} Gravar rolê
+          </button>
+          <button class="btn" onclick="switchScreen('clubs'); closeModal(); toast('Motoclubs ✅')">
+            ${icon("open")} Ver motoclubs
+          </button>
+          <button class="btn" onclick="openSOS()">
+            ${icon("open")} Abrir socorro
+          </button>
+        </div>
+        <div class="divider"></div>
+        <p class="small">MVP: aqui teria “criar post”, “criar evento do club”, “reportar perigo”, etc.</p>
+      `);
+    });
+
+    // ======== FILTER PILLS ========
+    $$(".pill[data-filter]").forEach(p => {
+      p.addEventListener("click", () => {
+        $$(".pill[data-filter]").forEach(x => x.classList.remove("active"));
+        p.classList.add("active");
+        state.filter = p.dataset.filter;
+        renderFeed();
+      });
+    });
+    $("#btnSuggest").addEventListener("click", () => {
+      $("#searchInput").value = "Recife → Piranhas";
+      renderFeed();
+      toast("Sugestão aplicada 🔎");
+    });
+    $("#searchInput").addEventListener("input", () => renderFeed());
+
+    // ======== NAV ========
+    $$(".navbtn").forEach(btn => btn.addEventListener("click", () => switchScreen(btn.dataset.nav)));
+
+    // ======== MODAL CLOSE ========
+    $("#btnCloseModal").addEventListener("click", closeModal);
+    $("#modalWrap").addEventListener("click", (e) => { if(e.target.id === "modalWrap") closeModal(); });
+
+    // ======== SOS ========
+    function openSOS(){
+      openModal("SOCORRO", `
+        <div class="card" style="margin:0">
+          <h2 style="margin:0;font-size:14px">Emergência / Socorro</h2>
+          <p class="small" style="margin-top:8px">
+            MVP: aqui você escolhe o tipo de socorro e o app envia sua localização para contatos / motoclub / serviço.
+          </p>
+          <div class="divider"></div>
+
+          <div class="actions">
+            <button class="btn danger" onclick="sendSOS('Acidente')">🚨 Acidente</button>
+            <button class="btn danger" onclick="sendSOS('Pane')">🛠️ Pane</button>
+            <button class="btn danger" onclick="sendSOS('Pneu furado')">🛞 Pneu furado</button>
+            <button class="btn danger" onclick="sendSOS('Sem combustível')">⛽ Sem combustível</button>
+          </div>
+
+          <div class="divider"></div>
+          <div class="field">
+            <label>Detalhes (opcional)</label>
+            <textarea id="sosDetails" placeholder="Ex.: km 120, próximo de Delmiro Gouveia..."></textarea>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" onclick="sendSOS('Enviar com localização')">Enviar agora</button>
+            <button class="btn" onclick="closeModal()">Fechar</button>
+          </div>
+
+          <p class="small" style="margin-top:10px">
+            Backend: POST /sos (lat/lng + tipo + texto + clubId opcional)
+          </p>
+        </div>
+      `);
+    }
+
+    window.sendSOS = (type) => {
+      closeModal();
+      toast("SOCORRO enviado: " + type + " ✅ (mock)");
+    };
+
+    $("#btnSOS").addEventListener("click", openSOS);
+
+    // ======== PROFILE ========
+    function renderMyRoutes(){
+      $("#kpiRoutes").textContent = state.myRoutes.length;
+      $("#kpiClubs").textContent = state.clubs.filter(c=>c.isMember).length;
+
+      const list = $("#myRoutes");
+      list.innerHTML = "";
+      state.myRoutes.forEach(r => {
+        const card = document.createElement("div");
+        card.className = "mini";
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start">
+            <div style="min-width:0">
+              <div style="font-weight:800; letter-spacing:.2px; font-size:13px">${r.title}</div>
+              <div class="small" style="margin-top:4px">${r.distance} • ${r.visibility}</div>
+            </div>
+            <span class="tag">${icon("star")} <strong>${r.rating}</strong></span>
+          </div>
+          <div class="actions" style="margin-top:10px">
+            <button class="btn" onclick="openMyRoute(${r.id})">${icon("open")} Detalhes</button>
+            <button class="btn" onclick="copyMyRoute(${r.id})">${icon("copy")} Copiar</button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    window.openMyRoute = (id) => {
+      const r = state.myRoutes.find(x => x.id === id);
+      if(!r) return;
+      openModal("Minha rota", `
+        <div class="card" style="margin:0">
+          <div class="title">
+            <div>
+              <h2>${r.title}</h2>
+              <p>${r.distance} • ${r.visibility}</p>
+            </div>
+            <span class="tag">${icon("star")} <strong>${r.rating}</strong></span>
+          </div>
+          <div class="map" style="height:180px">
+            <div class="mapLabel">Mapa (mock)</div>
+            <div class="routeLine">${mockLine(r.id)}</div>
+            <div class="mapPin" style="left:20%; top:60%"></div>
+            <div class="mapPin end" style="left:78%; top:26%"></div>
+          </div>
+          <div class="actions">
+            <button class="btn danger" onclick="deleteMyRoute(${r.id})">Excluir</button>
+            <button class="btn" onclick="closeModal()">Fechar</button>
+          </div>
+        </div>
+      `);
+    };
+
+    window.copyMyRoute = (id) => {
+      const r = state.myRoutes.find(x => x.id === id);
+      if(!r) return;
+      state.myRoutes.unshift({ id: Math.floor(1000+Math.random()*9000), title: r.title + " (cópia)", rating: 0, distance: r.distance, visibility: "Privada" });
+      toast("Cópia criada ✅");
+      renderMyRoutes();
+    };
+
+    window.deleteMyRoute = (id) => {
+      state.myRoutes = state.myRoutes.filter(x => x.id !== id);
+      closeModal();
+      toast("Rota excluída 🗑️");
+      renderMyRoutes();
+    };
+
+    // ======== SETTINGS / LOGOUT (MVP) ========
+    $("#btnOpenSettings").addEventListener("click", () => {
+      openModal("Configurações", `
+        <div class="field">
+          <label>Privacidade padrão</label>
+          <select>
+            <option>Privada</option>
+            <option>Motoclub</option>
+            <option>Pública</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Frequência do GPS (conceito)</label>
+          <select>
+            <option>Alta precisão (3s / 10m)</option>
+            <option>Economia (6s / 25m)</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="closeModal()">Salvar</button>
+        </div>
+      `);
+    });
+    $("#btnLogout").addEventListener("click", () => toast("Logout (mock)"));
+
+    // ======== RIDE SIM ========
+    let rideTimer = null;
+    function fmtTime(sec){
+      const m = Math.floor(sec/60);
+      const s = sec%60;
+      return String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+    }
+    function updateRideUI(){
+      $("#rideState").textContent = state.ride.running ? "Gravando" : "Parado";
+      $("#ridePoints").textContent = state.ride.points.length;
+      $("#rideTime").textContent = fmtTime(state.ride.seconds);
+      $("#rideDistance").textContent = state.ride.distanceKm.toFixed(1) + " km";
+    }
+    function addMockPoint(){
+      const inc = 0.25 + Math.random()*0.30;
+      state.ride.distanceKm += inc;
+      state.ride.points.push({ lat:-8.05 + (Math.random()*0.02), lng:-34.9 + (Math.random()*0.02), t: Date.now() });
+      drawRideLine();
+      updateRideUI();
+    }
+    function drawRideLine(){
+      const p = state.ride.points.length;
+      if(p < 2){ $("#rideMapLine").innerHTML = ""; return; }
+      const progress = Math.min(1, p / 25);
+      const x2 = 10 + progress*80;
+      const y2 = 45 - progress*26;
+      $("#rideMapLine").innerHTML = `
+        <svg viewBox="0 0 100 60" preserveAspectRatio="none">
+          <path d="M10,45 C38,58 50,30 ${x2.toFixed(1)},${y2.toFixed(1)}"
+            stroke="rgba(57,182,255,.85)" stroke-width="2.8" fill="none"
+            stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10,45 C38,58 50,30 ${x2.toFixed(1)},${y2.toFixed(1)}"
+            stroke="rgba(110,231,183,.35)" stroke-width="7.2" fill="none"
+            stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+    }
+
+    $("#btnStartRide").addEventListener("click", () => {
+      if(state.ride.running){ toast("Já está gravando ⏺️"); return; }
+      state.ride.running = true;
+      state.ride.seconds = 0;
+      state.ride.points = [];
+      state.ride.distanceKm = 0;
+      updateRideUI();
+      toast("Gravação iniciada 🏍️");
+
+      rideTimer = setInterval(() => {
+        if(!state.ride.running) return;
+        state.ride.seconds += 1;
+        if(state.ride.seconds % 3 === 0) addMockPoint();
+        updateRideUI();
+      }, 1000);
+    });
+
+    $("#btnAddPoint").addEventListener("click", () => {
+      if(!state.ride.running){ toast("Inicie a gravação primeiro ▶️"); return; }
+      addMockPoint();
+      toast("Ponto adicionado 📍");
+    });
+
+    $("#btnStopRide").addEventListener("click", () => {
+      if(!state.ride.running){ toast("Nada para finalizar."); return; }
+      state.ride.running = false;
+      clearInterval(rideTimer);
+      rideTimer = null;
+      updateRideUI();
+      toast("Rolê finalizado ✅");
+    });
+
+    $("#btnOpenSaveRide").addEventListener("click", () => {
+      openModal("Salvar rolê", `
+        <div class="field">
+          <label>Título</label>
+          <input id="saveTitle" placeholder="Ex.: Recife → Piranhas (minha versão)" />
+        </div>
+
+        <div class="field">
+          <label>Visibilidade</label>
+          <select id="saveVis">
+            <option value="Privada">Privada</option>
+            <option value="Motoclub">Motoclub</option>
+            <option value="Pública">Pública</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Publicar em qual motoclub? (se “Motoclub”)</label>
+          <select id="saveClub">
+            ${state.clubs.filter(c=>c.isMember).map(c=>`<option value="${c.id}">${c.name}</option>`).join("")}
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Nota do rolê</label>
+          <select id="saveRating">
+            <option value="5">5 — excelente</option>
+            <option value="4">4 — bom</option>
+            <option value="3">3 — ok</option>
+            <option value="2">2 — ruim</option>
+            <option value="1">1 — péssimo</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Comentário</label>
+          <textarea id="saveComment" placeholder="Ex.: paradas boas, trecho perigoso, melhor horário..."></textarea>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" onclick="doSaveRide()">Salvar</button>
+          <button class="btn" onclick="closeModal()">Cancelar</button>
+        </div>
+
+        <p class="small" style="margin-top:10px">
+          Backend: POST /rides, /rides/{id}/points:batch, /rides/{id}/finish
+        </p>
+      `);
+    });
+
+    window.doSaveRide = () => {
+      if(state.ride.points.length < 2){ toast("Grave ao menos 2 pontos antes de salvar."); return; }
+      const title = ($("#saveTitle").value || "").trim() || "Meu rolê (MVP)";
+      const vis = $("#saveVis").value;
+      const rating = Number($("#saveRating").value);
+      const clubId = Number($("#saveClub").value || 0);
+      const club = state.clubs.find(c=>c.id===clubId);
+
+      state.myRoutes.unshift({
+        id: Math.floor(1000+Math.random()*9000),
+        title,
+        rating,
+        distance: state.ride.distanceKm.toFixed(1) + " km",
+        visibility: vis
+      });
+
+      if(vis === "Motoclub" && club && club.isMember){
+        club.trips.unshift({
+          id: Math.floor(9000 + Math.random()*9000),
+          title,
+          by: state.user.handle,
+          rating: rating,
+          distance: state.ride.distanceKm.toFixed(1) + " km",
+          when: "Agora",
+          comments: 0
+        });
+        toast("Salvo + publicado no grupo ✅");
+      } else {
+        toast("Rolê salvo no seu perfil ✅");
+      }
+
+      closeModal();
+    };
+
+    // ======== PLANNER (mock) ========
+    state.planner = {
+      origin: "Recife-PE",
+      dest: "Fortaleza-CE",
+      style: "paisagem",
+      dailyKm: 320,
+      mockRouteId: 7001
+    };
+
+    function renderPlannerEmpty(){
+      $("#sleepSuggestions").innerHTML = `
+        <div class="mini">
+          <div class="k">Dica</div>
+          <div class="v">Escolha origem/destino e toque em “Gerar sugestões (mock)”</div>
+        </div>
+      `;
+      $("#roadComments").innerHTML = `
+        <div class="mini">
+          <div class="k">Dica</div>
+          <div class="v">Aqui vão alertas por trecho (buraco, blitz, posto, chuva)</div>
+        </div>
+      `;
+      $("#similarTrips").innerHTML = `
+        <div class="mini">
+          <div class="k">Dica</div>
+          <div class="v">Aqui aparece “viagem parecida” para copiar e ler comentários</div>
+        </div>
+      `;
+    }
+
+    function mockPlannerData(origin, dest, style, dailyKm){
+      // (MVP) dados fake — você depois troca por API do backend
+      const scenic = [
+        { title:"Pôr do sol + mirante", km:"~290 km", note:"Parada bonita pra foto e descanso. Ideal no fim da tarde." },
+        { title:"Beira-rio / cânion (view)", km:"~420 km", note:"Ponto turístico pra esticar as pernas e comer algo." },
+        { title:"Serra / curvas leves", km:"~510 km", note:"Trecho agradável cedo. Atenção se chover." }
+      ];
+
+      const hotels = [
+        { name:"Pousada Serra Azul", city:"Parada 1", price:"R$ 160–220", note:"Bom custo/benefício • estacionamento (mock)" },
+        { name:"Hotel Via Norte", city:"Parada 2", price:"R$ 220–320", note:"Café cedo • perto de posto (mock)" },
+        { name:"Pousada do Cânion", city:"Parada 3", price:"R$ 180–260", note:"Vista top • local turístico (mock)" }
+      ];
+
+      const road = [
+        { km:"km 60–90", type:"Atenção", text:"Asfalto irregular e vento lateral. Melhor reduzir." },
+        { km:"km 140–160", type:"Posto", text:"Bom para abastecer + banheiro limpo. Lotado no almoço." },
+        { km:"km 210–240", type:"Perigo", text:"Buracos no acostamento. Cuidado à noite." },
+        { km:"km 300–320", type:"Blitz", text:"Relatos de fiscalização em horários alternados (mock)." }
+      ];
+
+      const similar = [
+        {
+          id: 8801,
+          title: `${origin} → ${dest} (rota segura)`,
+          by: "@riderleo",
+          rating: 4.7,
+          distance: (dailyKm*2).toFixed(0) + " km (mock)",
+          comments: [
+            "Dormi em uma pousada simples no meio do caminho — estacionamento ok.",
+            "Evitar rodar depois das 19h em trecho X (pouca iluminação).",
+            "Parada top pra foto no mirante (fim de tarde)."
+          ]
+        },
+        {
+          id: 8802,
+          title: `${origin} → ${dest} (paisagem + paradas)`,
+          by: "@anarider",
+          rating: 4.9,
+          distance: (dailyKm*2.1).toFixed(0) + " km (mock)",
+          comments: [
+            "Rota mais bonita, porém um pouco mais longa.",
+            "Ótimo café da manhã em um posto no km 150 (mock)."
+          ]
+        }
+      ];
+
+      // ajustar leve conforme estilo
+      const styleHint =
+        style === "rapido" ? "Foco em tempo (menos paradas)." :
+        style === "economico" ? "Foco em economia (postos e pousadas baratas)." :
+        "Foco em paisagem (mirantes e pontos turísticos).";
+
+      return { scenic, hotels, road, similar, styleHint };
+    }
+
+    function renderPlanner(origin, dest, style, dailyKm){
+      const data = mockPlannerData(origin, dest, style, dailyKm);
+
+      // Sugestões de dormir + hotéis
+      $("#sleepSuggestions").innerHTML = `
+        <div class="mini">
+          <div class="k">Resumo</div>
+          <div class="v">${data.styleHint} Meta: ~${dailyKm} km/dia</div>
+        </div>
+
+        <div class="mini" style="margin-top:10px">
+          <div class="k">Pontos da paisagem (bons para parar e dormir)</div>
+          <div class="v" style="margin-top:6px; font-weight:800">
+            ${data.scenic.map(s => `• ${s.title} — <span style="opacity:.9">${s.km}</span><div class="small" style="margin-top:4px">${s.note}</div>`).join("<div style='height:10px'></div>")}
+          </div>
+        </div>
+
+        <div class="mini" style="margin-top:10px">
+          <div class="k">Sugestão de hotéis/pousadas (mock)</div>
+          <div class="v" style="margin-top:6px; font-weight:800">
+            ${data.hotels.map(h => `• ${h.name} (${h.city}) — <span style="opacity:.9">${h.price}</span><div class="small" style="margin-top:4px">${h.note}</div>`).join("<div style='height:10px'></div>")}
+          </div>
+        </div>
+      `;
+
+      // Comentários na pista
+      $("#roadComments").innerHTML = data.road.map(r => `
+        <div class="mini" style="margin-top:10px">
+          <div class="k">${r.type} • ${r.km}</div>
+          <div class="v">${r.text}</div>
+          <div class="actions" style="margin-top:10px">
+            <button class="btn" onclick="saveRoadNote('${r.km}','${r.type}')">Salvar alerta</button>
+            <button class="btn" onclick="openRoadThread('${r.km}')">Ver comentários</button>
+          </div>
+        </div>
+      `).join("");
+
+      // Viagens parecidas
+      $("#similarTrips").innerHTML = data.similar.map(t => `
+        <div class="mini" style="margin-top:10px">
+          <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start">
+            <div style="min-width:0">
+              <div style="font-weight:900">${t.title}</div>
+              <div class="small" style="margin-top:4px">por <strong style="color:var(--text)">${t.by}</strong> • ${t.distance}</div>
+            </div>
+            <span class="tag">${icon("star")} <strong>${t.rating}</strong></span>
+          </div>
+
+          <div class="actions" style="margin-top:10px">
+            <button class="btn primary" onclick="openSimilarTrip(${t.id})">${icon("open")} Ver comentários</button>
+            <button class="btn" onclick="copySimilarTrip(${t.id})">${icon("copy")} Copiar rota</button>
+          </div>
+        </div>
+      `).join("");
+
+      toast(`Sugestões geradas: ${origin} → ${dest} ✅`);
+    }
+
+    window.saveRoadNote = (km, type) => {
+      toast(`Alerta salvo (${type} • ${km}) ✅ (mock)`);
+    };
+
+    window.openRoadThread = (km) => {
+      openModal("Comentários na pista", `
+        <div class="card" style="margin:0">
+          <h2 style="margin:0;font-size:14px">Trecho ${km}</h2>
+          <p class="small" style="margin-top:8px">MVP: comentários da comunidade sobre esse trecho.</p>
+          <div class="divider"></div>
+          <div class="mini">
+            <div class="k">Comentário</div>
+            <div class="v">“Cuidado com buraco no acostamento, principalmente à noite.”</div>
+          </div>
+          <div class="mini" style="margin-top:10px">
+            <div class="k">Comentário</div>
+            <div class="v">“Posto bom logo depois desse trecho (banheiro limpo).”</div>
+          </div>
+          <div class="divider"></div>
+          <div class="field">
+            <label>Adicionar comentário</label>
+            <textarea placeholder="Escreva sua dica..."></textarea>
+          </div>
+          <div class="actions">
+            <button class="btn primary" onclick="closeModal(); toast('Comentário enviado 💬 (mock)')">Enviar</button>
+            <button class="btn" onclick="closeModal()">Fechar</button>
+          </div>
+        </div>
+      `);
+    };
+
+    window.openSimilarTrip = (tripId) => {
+      const origin = $("#planOrigin")?.value || state.planner.origin;
+      const dest = $("#planDest")?.value || state.planner.dest;
+      const style = $("#planStyle")?.value || state.planner.style;
+      const dailyKm = Number($("#planDailyKm")?.value || state.planner.dailyKm);
+      const data = mockPlannerData(origin, dest, style, dailyKm);
+      const t = data.similar.find(x => x.id === tripId);
+      if(!t){ toast("Viagem não encontrada."); return; }
+
+      openModal("Viagem parecida", `
+        <div class="card" style="margin:0">
+          <div class="title">
+            <div style="min-width:0">
+              <h2>${t.title}</h2>
+              <p>por <strong style="color:var(--text)">${t.by}</strong> • ${t.distance}</p>
+            </div>
+            <span class="tag">${icon("star")} <strong>${t.rating}</strong></span>
+          </div>
+
+          <div class="divider"></div>
+          <h2 style="margin:0;font-size:13px">Comentários</h2>
+          <ul class="small" style="margin:10px 0 0; padding-left:18px">
+            ${t.comments.map(c => `<li style="margin:8px 0">${c}</li>`).join("")}
+          </ul>
+
+          <div class="actions" style="margin-top:12px">
+            <button class="btn primary" onclick="copySimilarTrip(${t.id}); closeModal();">${icon("copy")} Copiar rota</button>
+            <button class="btn" onclick="closeModal()">Fechar</button>
+          </div>
+        </div>
+      `);
+    };
+
+    window.copySimilarTrip = (tripId) => {
+      const origin = $("#planOrigin")?.value || state.planner.origin;
+      const dest = $("#planDest")?.value || state.planner.dest;
+      const dailyKm = Number($("#planDailyKm")?.value || state.planner.dailyKm);
+
+      state.myRoutes.unshift({
+        id: Math.floor(1000 + Math.random()*9000),
+        title: `Cópia de viagem parecida (#${tripId}) • ${origin} → ${dest}`,
+        rating: 0,
+        distance: (dailyKm*2).toFixed(0) + " km (mock)",
+        visibility: "Privada"
+      });
+
+      toast("Rota copiada para seu perfil ✅");
+      // se estiver no perfil depois, vai aparecer
+    };
+
+    function applyPlanToMap(){
+      const origin = $("#planOrigin").value;
+      const dest = $("#planDest").value;
+      $("#mapLabelRide").textContent = `${origin} → ${dest} (mock)`;
+      toast("Planner aplicado no mapa 🗺️");
+    }
+
+    // Botões do planner
+    $("#btnPlanTrip").addEventListener("click", () => {
+      const origin = $("#planOrigin").value;
+      const dest = $("#planDest").value;
+      const style = $("#planStyle").value;
+      const dailyKm = Number($("#planDailyKm").value);
+
+      state.planner.origin = origin;
+      state.planner.dest = dest;
+      state.planner.style = style;
+      state.planner.dailyKm = dailyKm;
+
+      renderPlanner(origin, dest, style, dailyKm);
+    });
+
+    $("#btnUsePlanOnMap").addEventListener("click", applyPlanToMap);
+
+    // ======== CLOCK ========
+    function updateClock(){
+      const d = new Date();
+      $("#clock").textContent = String(d.getHours()).padStart(2,'0') + ":" + String(d.getMinutes()).padStart(2,'0');
+    }
+
+    // ======== INIT ========
+    updateClock();
+    setInterval(updateClock, 15000);
+    setSubtitle();
+    renderFeed();
+    renderClubs();
+    renderMyRoutes();
+    updateRideUI();
+    renderPlannerEmpty();
+  </script>
+</body>
+</html>
